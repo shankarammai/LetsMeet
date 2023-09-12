@@ -1,5 +1,5 @@
 export type Message = {
-    dataType: 'Text' | 'File';
+    dataType: 'Text' | 'File' | 'InitialConfig';
     data: string;
     fileName?: string;
     file?: Blob;

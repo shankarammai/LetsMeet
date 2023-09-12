@@ -19,6 +19,7 @@
     "@mantine/notifications": "^6.0.17",
     "embla-carousel-autoplay": "^8.0.0-rc11",
     "embla-carousel-react": "^7.1.0",
+    "etro": "^0.11.0",
     "jotai": "^2.2.2",
     "peerjs": "^1.4.7",
     "react": "^18.2.0",

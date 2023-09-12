@@ -4,6 +4,7 @@ import { FaUser, FaCamera, FaArrowCircleRight } from 'react-icons/fa';
 import { messagesAtom, peerIdAtom } from './store/store';
 import { useRef } from 'react';
 import ChatBox from './ChatBox';
+import Effects from './Effects';
 export default function SideBar({ sendMessage }) {
   const [messages, setMessages] = useAtom(messagesAtom);
   const [peerId, setPeerId] = useAtom(peerIdAtom);
@@ -48,7 +49,7 @@ export default function SideBar({ sendMessage }) {
       </Tabs.Panel>
 
       <Tabs.Panel value="filters" pt="xs">
-        filters tab content
+       <Effects/>
       </Tabs.Panel>
 
     </Tabs>

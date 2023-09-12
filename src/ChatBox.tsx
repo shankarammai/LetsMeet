@@ -1,20 +1,26 @@
 import React from 'react'
-import { Box } from '@mantine/core';
+import { Paper, Text } from '@mantine/core';
 import { Message } from './Types'
 
 interface Props {
-    message:Message,
+    message: Message,
     isMyMessage: string,
 }
-export default function ChatBox({message , isMyMessage}: Props) {
-  return (
-    <Box
-    bg={isMyMessage ? 'green.2' : 'blue.2'}
-    mb={3}
-    c="#fff"
-    ta={isMyMessage ? 'right' : 'left'}
-  >
-    {message.data}
-  </Box>
-  )
+export default function ChatBox({ message, isMyMessage }: Props) {
+    return (
+        <Paper component="text" radius={"md"}
+            display="block"
+            sx={{
+                overflow: "auto",
+            }}
+            bg={isMyMessage ? 'cyan.3' : 'teal.3'}
+            mb={3}
+            p={5}
+            c="#fff"
+            ta={isMyMessage ? 'right' : 'left'}
+
+        >
+            {message.data}
+        </Paper>
+    )
 }
