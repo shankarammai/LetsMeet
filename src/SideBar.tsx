@@ -11,7 +11,7 @@ export default function SideBar({ sendMessage }) {
   const messageInputRef = useRef<HTMLInputElement>(null);
   const content = messages
     .map((message, index) => 
-    <ChatBox message={message} isMyMessage={message.userId === peerId}></ChatBox>
+    <ChatBox message={message} isMyMessage={message.userId === peerId} key={index}></ChatBox>
     );
   const handleSendMesage = () => {
     sendMessage(messageInputRef.current?.value);

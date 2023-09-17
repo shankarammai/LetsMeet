@@ -7,7 +7,7 @@ import SideBar from './SideBar';
 import { useLocation, useNavigate } from 'react-router-dom';
 import getUuidByString from 'uuid-by-string';
 import { useAtom } from 'jotai';
-import { messagesAtom, remoteDataConnectionAtom, peerIdAtom, videoLayersAtom, connectionUserNamesAtom } from './store/store';
+import { messagesAtom, remoteDataConnectionAtom, peerIdAtom, videoLayersAtom, connectionUserNamesAtom, mediaConnectionsAtom } from './store/store';
 import { Message } from './Types';
 import { BsMicMuteFill, BsFillCameraVideoOffFill, BsCameraVideoFill, BsFillClipboardFill, BsFillClipboardCheckFill } from 'react-icons/bs';
 import { FaMicrophone, FaUserAlt } from 'react-icons/fa';
@@ -33,7 +33,8 @@ function App() {
     const currentUserVideoRef = useRef<HTMLVideoElement>(null);
     const [myVideoStream, setmyVideoStream] = useState<MediaStream>(new MediaStream());
     const peerInstance = useRef<Peer | null>(null);
-    const [remoteStreams, setRemoteStreams] = useState<MediaStream[]>([]);
+    const [remoteMediaStreams, setRemoteMediaStreams] = useState<MediaStream[]>([]);
+    const [mediaConnections, setMediaConnections] = useAtom(mediaConnectionsAtom);
     const [remoteDataConnections, setRemoteDataConnections] = useAtom(remoteDataConnectionAtom);
     const [connectionUserNames, setConnectionUserNames] = useAtom(connectionUserNamesAtom);
     const [opened, { open, close }] = useDisclosure(false);
@@ -52,26 +53,28 @@ function App() {
         peer.on('open', (id) => {
             setPeerId(id)
         });
+
+        peer.on('close', () => {
+            console.log('Data ended from another');
+            closeCall();
+        });
+
+        //Setting the data Connection for Messages
         peer.on('connection', (connection) => {
             console.log('connecton established');
             setRemoteDataConnections((previous) => [connection, ...previous]);
-            connection.send({
-                dataType:'InitialConfig',
-                data: userName,
-                userId: peerId,
-                timestamp: Date.now(),
-            });
             connection.on('data', (data) => {
                 console.log('data received');
                 console.log(data);
                 setMessages((prev) => [...prev, data as Message]);
             })
         });
+
         peer.on('call', (call) => {
             console.log('call event tigerred');
             const metaData = call.metadata;
             notifications.show({
-                id: 'incommingCallNotification',
+                id: 'incomingCallNotification',
                 title: 'Ringing',
                 message:
                     <>
@@ -81,9 +84,9 @@ function App() {
                                 <BiPhoneCall />
                             </ActionIcon>
                             <ActionIcon size={'lg'} variant="filled" color='red' onClick={() => {
-                                notifications.hide('incommingCallNotification');
-                                call.close();
-                                remoteDataConnections[0].close();
+                                notifications.hide('incomingCallNotification');
+                                call?.close();
+                                setRemoteDataConnections([]);
                             }}>
                                 <BiPhoneCall />
                             </ActionIcon>
@@ -92,13 +95,19 @@ function App() {
                 color: 'blue',
                 autoClose: false
             });
-            console.log(metaData);
-        })
+
+            //When the connection is closed
+            call.on('close', () => {
+                console.log('Call Ended from remote person');
+                closeCall();
+            })
+        });
 
         peer.on('close', () => {
-            notifications.hide('incommingCallNotification');
+            notifications.hide('incomingCallNotification');
             notifications.hide('callingNotification');
-        })
+            closeCall();
+        });
 
         peerInstance.current = peer;
     }, [])
@@ -110,7 +119,7 @@ function App() {
             }
         }
         const call = peerInstance.current!.call(remotePeerId, myVideoStream, options)
-        const con = peerInstance.current!.connect(remotePeerId, options);
+
         notifications.show({
             id: 'callingNotification',
             title: 'Calling',
@@ -119,59 +128,73 @@ function App() {
             autoClose: false
         });
 
-
-        con.on('open', () => {
-            console.log('Connection opened on caller');
-            setRemoteDataConnections(prev => [con, ...prev]);
-        });
-        con.on('close',()=>{
-            notifications.hide('callingNotification');
-        })
-
-        con.on('data', function (data) {
-            console.log(data);
-            if((data as Message).dataType== 'InitialConfig' ){
-                setConnectionUserNames([(data as Message).data]);
-                return;
-            }
-            setMessages((prev) => [...prev, data as Message,]);
-        });
         call.on('stream', (remoteStream) => {
-            console.log('upcoming sream 40');
+            //Setting the Data Connection only after media connection is established, here remote user already accepted the call
+            const con = peerInstance.current!.connect(remotePeerId, options);
+
+            con.on('open', () => {
+                console.log('Connection opened on caller');
+                setRemoteDataConnections(prev => [con, ...prev]);
+            });
+            con.on('close', () => {
+                notifications.hide('callingNotification');
+                closeCall();
+            });
+    
+            con.on('data', function (data) {
+                console.log('Connection data received line 151');
+                console.log(data);
+                if ((data as Message).dataType == 'InitialConfig') {
+                    console.log(data);
+                    setConnectionUserNames([(data as Message).data]);
+                }
+                else {
+                    setMessages((prev) => [...prev, data as Message]);
+                }
+            });
             notifications.hide('callingNotification');
-            setRemoteStreams([remoteStream]);
-            console.log(remoteStream);
+            setRemoteMediaStreams([remoteStream]);
+            setMediaConnections([call]);
         });
+
+        call.on('close', ()=>{
+            closeCall();
+            notifications.hide('callingNotification')
+        })
     }
 
     const answerCall = (call: MediaConnection) => {
-        notifications.hide('incommingCallNotification');
+        notifications.hide('incomingCallNotification');
+        setMediaConnections((previous) => [call, ...previous]);
+
         navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((mediaStream) => {
-            call.answer(mediaStream)
+            call.answer(mediaStream);
             call.on('stream', (remoteStream) => {
                 console.log('stream tiggered line 32');
-                setRemoteStreams([remoteStream]);
+                setRemoteMediaStreams([remoteStream]);
             });
-
         });
     }
 
-    const closeCall = () =>{
+    const closeCall = () => {
         //Todo: disconnect, messages resst, connections,video reset
-        peerInstance.current?.disconnect();
-        remoteDataConnections[0].close();
-        setRemoteStreams([]);
+        console.log('Call Ended trigerred');
+        remoteDataConnections[0]?.close();
+        mediaConnections[0]?.close();
+        setMessages([]);
         setRemoteDataConnections([]);
+        setRemoteMediaStreams([]);
+        setMediaConnections([])
         setConnectionUserNames([]);
     }
 
-    const sendMessage = (message: string, config=false) => {
+    const sendMessage = (message: string, config = false) => {
         if (remoteDataConnections.length == 0) {
             alert('No Connection Made');
             return;
         }
         const newMessage: Message = {
-            dataType: config ? 'InitialConfig' :'Text',
+            dataType: config ? 'InitialConfig' : 'Text',
             data: message,
             userId: peerId,
             timestamp: Date.now(),
@@ -243,7 +266,7 @@ function App() {
                 columnGap={'lg'}
             >
                 <VideoPlayer stream={myVideoStream}></VideoPlayer>
-                {remoteStreams.map((stream, i) => {
+                {remoteMediaStreams.map((stream, i) => {
                     return <><VideoPlayer stream={stream} key={i}></VideoPlayer> <p key={i}>{connectionUserNames[0]} </p></>
 
                 })}
