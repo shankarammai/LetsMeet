@@ -14,6 +14,7 @@ import { FaMicrophone, FaUserAlt } from 'react-icons/fa';
 import { AiOutlineFundProjectionScreen } from 'react-icons/ai';
 import { BiPhoneCall } from 'react-icons/bi';
 import { notifications } from '@mantine/notifications';
+import etro from 'etro';
 
 
 
@@ -140,7 +141,7 @@ function App() {
                 notifications.hide('callingNotification');
                 closeCall();
             });
-    
+
             con.on('data', function (data) {
                 console.log('Connection data received line 151');
                 console.log(data);
@@ -157,7 +158,7 @@ function App() {
             setMediaConnections([call]);
         });
 
-        call.on('close', ()=>{
+        call.on('close', () => {
             closeCall();
             notifications.hide('callingNotification')
         })
@@ -166,6 +167,12 @@ function App() {
     const answerCall = (call: MediaConnection) => {
         notifications.hide('incomingCallNotification');
         setMediaConnections((previous) => [call, ...previous]);
+
+        // call.answer(myVideoStream);
+        // call.on('stream', (remoteStream) => {
+        //     console.log('stream tiggered line 32');
+        //     setRemoteMediaStreams([remoteStream]);
+        // });
 
         navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((mediaStream) => {
             call.answer(mediaStream);
@@ -205,17 +212,24 @@ function App() {
 
     const handleVoiceToggle = () => {
         setIsMuted(!isMuted);
+        if (mediaConnections.length > 0) {
+            mediaConnections[0].localStream.getAudioTracks()[0].enabled = isMuted ? false : true;
+        }
     }
 
     const handleVideoToggle = () => {
         setIsVideoOn(!isVideoOn);
+        myVideoStream.getVideoTracks()[0].enabled = isVideoOn ? false : true;
+        if (mediaConnections.length > 0) {
+            mediaConnections[0].localStream.getVideoTracks()[0].enabled = !isVideoOn;
+        }
     }
-    const handleVideoSourceToggle = () => {
+    const handleVideoSourceToggle = async () => {
         console.log('change source');
         console.log(isShareScreen);
         setIsShareScreen(!isShareScreen);
         if (isShareScreen) {
-            navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((screenStream) => {
+            navigator.mediaDevices.getDisplayMedia({ video: true, audio: true }).then((screenStream) => {
                 setmyVideoStream(screenStream);
             });
         }
