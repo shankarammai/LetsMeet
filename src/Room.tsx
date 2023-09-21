@@ -32,7 +32,7 @@ function App() {
     const [remotePeerIdValue, setRemotePeerIdValue] = useState('');
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
     const currentUserVideoRef = useRef<HTMLVideoElement>(null);
-    const [myVideoStream, setmyVideoStream] = useState<MediaStream>(new MediaStream());
+    const [myVideoStream, setMyVideoStream] = useState<MediaStream>(new MediaStream());
     const peerInstance = useRef<Peer | null>(null);
     const [remoteMediaStreams, setRemoteMediaStreams] = useState<MediaStream[]>([]);
     const [mediaConnections, setMediaConnections] = useAtom(mediaConnectionsAtom);
@@ -44,11 +44,12 @@ function App() {
     const [isVideoOn, setIsVideoOn] = useState<boolean>(true);
     const [isShareScreen, setIsShareScreen] = useState<boolean>(true);
     const [videoLayers, setVideoLayers] = useAtom(videoLayersAtom);
+    const canvasRef = useRef(null);
 
     useEffect(() => {
         const peer = new Peer();
         navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((mediaStream) => {
-            setmyVideoStream(mediaStream);
+            setMyVideoStream(mediaStream);
         });
 
         peer.on('open', (id) => {
@@ -167,13 +168,6 @@ function App() {
     const answerCall = (call: MediaConnection) => {
         notifications.hide('incomingCallNotification');
         setMediaConnections((previous) => [call, ...previous]);
-
-        // call.answer(myVideoStream);
-        // call.on('stream', (remoteStream) => {
-        //     console.log('stream tiggered line 32');
-        //     setRemoteMediaStreams([remoteStream]);
-        // });
-
         navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((mediaStream) => {
             call.answer(mediaStream);
             call.on('stream', (remoteStream) => {
@@ -182,6 +176,27 @@ function App() {
             });
         });
     }
+
+    const showVideoOffScreen = (): MediaStream => {
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        // Define the background color and text color
+        const backgroundColor = '#3498db'; // Background color (blue)
+        const textColor = '#FFFFFF'; // Text color (white)
+        ctx.fillStyle = backgroundColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.font = '40px Arial'; // Font size and family
+        ctx.fillStyle = textColor;
+        const initials = userName
+            .split(' ')
+            .map(word => word.charAt(0))
+            .join('');
+
+        const textX = canvas.width / 2 - ctx.measureText(initials).width / 2;
+        const textY = canvas.height / 2 + 40 / 3; // Adjust for baseline
+        ctx.fillText(initials, textX, textY);
+        return canvas.captureStream();
+    };
 
     const closeCall = () => {
         //Todo: disconnect, messages resst, connections,video reset
@@ -217,28 +232,41 @@ function App() {
         }
     }
 
-    const handleVideoToggle = () => {
+    const handleVideoToggle = async () => {
         setIsVideoOn(!isVideoOn);
-        myVideoStream.getVideoTracks()[0].enabled = isVideoOn ? false : true;
-        if (mediaConnections.length > 0) {
-            mediaConnections[0].localStream.getVideoTracks()[0].enabled = !isVideoOn;
+
+        myVideoStream.getVideoTracks()[0].enabled = !isVideoOn;
+
+        if (isVideoOn) {
+            const whiteVideoTrack = showVideoOffScreen().getVideoTracks()[0];
+            const videoSender = mediaConnections[0]?.peerConnection.getSenders().find(sender => sender?.track?.kind === 'video');
+            videoSender?.replaceTrack(whiteVideoTrack);
+            setMyVideoStream(showVideoOffScreen);
+        } else {
+            const videoSender = mediaConnections[0]?.peerConnection.getSenders().find(sender => sender?.track?.kind === 'video');
+            const webcam = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            videoSender?.replaceTrack(webcam.getVideoTracks()[0]);
+            setMyVideoStream(webcam);
         }
-    }
+    };
+
     const handleVideoSourceToggle = async () => {
-        console.log('change source');
-        console.log(isShareScreen);
-        setIsShareScreen(!isShareScreen);
-        if (isShareScreen) {
-            navigator.mediaDevices.getDisplayMedia({ video: true, audio: true }).then((screenStream) => {
-                setmyVideoStream(screenStream);
-            });
+        try {
+            const stream = isShareScreen
+                ? await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })
+                : await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+
+            const videoSender = mediaConnections[0].peerConnection.getSenders().find(sender => sender!.track.kind === 'video');
+
+            if (videoSender) {
+                videoSender.replaceTrack(stream.getVideoTracks()[0]);
+            }
+            setMyVideoStream(stream);
+            setIsShareScreen(!isShareScreen);
+        } catch (error) {
+            console.error('Error accessing media devices:', error);
         }
-        else {
-            navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((mediaStream) => {
-                setmyVideoStream(mediaStream);
-            });
-        }
-    }
+    };
 
     return (
         <Container fluid={true}>
@@ -290,7 +318,7 @@ function App() {
                     <Button variant="gradient" gradient={{ from: 'indigo', to: 'cyan' }} onClick={open}>Open Chat</Button>
                 </Affix>
             }
-
+            <canvas ref={canvasRef} style={{ display: 'none' }} />
             <Group position='center' mt={'lg'}>
                 <Button color="indigo" onClick={handleVoiceToggle}>{isMuted ? (<FaMicrophone />) : (<BsMicMuteFill />)}</Button>
                 <Button color="grape" onClick={handleVideoToggle}>{isVideoOn ? <BsCameraVideoFill /> : <BsFillCameraVideoOffFill />}</Button>
