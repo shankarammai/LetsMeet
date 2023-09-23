@@ -1,12 +1,12 @@
 import { ActionIcon, Tabs, TextInput } from '@mantine/core';
 import { useAtom } from 'jotai';
-import { FaUser, FaCamera, FaArrowCircleRight } from 'react-icons/fa';
+import { FaUser, FaArrowCircleRight } from 'react-icons/fa';
 import { messagesAtom, peerIdAtom } from './store/store';
 import { useRef } from 'react';
 import ChatBox from './ChatBox';
-export default function SideBar({ sendMessage }) {
-  const [messages, setMessages] = useAtom(messagesAtom);
-  const [peerId, setPeerId] = useAtom(peerIdAtom);
+export default function SideBar({ sendMessage }: {sendMessage:any}) {
+  const [messages, _setMessages] = useAtom(messagesAtom);
+  const [peerId, _setPeerId] = useAtom(peerIdAtom);
   const messageInputRef = useRef<HTMLInputElement>(null);
   const content = messages
     .map((message, index) => 

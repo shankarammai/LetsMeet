@@ -1,4 +1,4 @@
-import { AppShell, Header, Group, ActionIcon, Text, useMantineColorScheme, Grid, Container, Button, Title, SimpleGrid, Input, Image, Divider, Flex } from '@mantine/core';
+import { AppShell, Header, Group, ActionIcon, Text, useMantineColorScheme, Grid, Container, Button, Title, SimpleGrid, Input, Image, Divider } from '@mantine/core';
 import { Carousel } from '@mantine/carousel';
 import useEmblaCarousel from 'embla-carousel-react'
 import { FaSun, FaMoon, FaUser, FaEnvelope } from 'react-icons/fa';
@@ -15,7 +15,7 @@ function Home() {
   const [emblaRef] = useEmblaCarousel({ loop: false });
   const uniqueIDRef = useRef<HTMLInputElement>(null!);
   const userNameRef = useRef<HTMLInputElement>(null!);
-  const [userName, setUserName] = useAtom(userNameAtom);
+  const [_userName, setUserName] = useAtom(userNameAtom);
 
   const navigate = useNavigate();
 

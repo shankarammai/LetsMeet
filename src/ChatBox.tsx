@@ -1,5 +1,4 @@
-import React from 'react'
-import { Paper, Text } from '@mantine/core';
+import { Paper } from '@mantine/core';
 import { Message } from './Types'
 
 interface Props {

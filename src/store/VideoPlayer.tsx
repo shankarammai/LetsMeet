@@ -1,5 +1,5 @@
 import { AspectRatio } from '@mantine/core';
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 export default function VideoPlayer({stream}: {stream:MediaStream}) {
     const videoRef = useRef<HTMLVideoElement>(null);

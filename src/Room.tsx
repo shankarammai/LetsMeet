@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Peer, { MediaConnection } from 'peerjs';
 import { Affix, Button, Container, Drawer, Group, Input, Text, rem, Flex, ActionIcon, TextInput, CopyButton, } from '@mantine/core';
 import VideoPlayer from './store/VideoPlayer';
@@ -30,13 +30,13 @@ function App() {
     const [remoteMediaStreams, setRemoteMediaStreams] = useState<MediaStream[]>([]);
     const [mediaConnections, setMediaConnections] = useAtom(mediaConnectionsAtom);
     const [remoteDataConnections, setRemoteDataConnections] = useAtom(remoteDataConnectionAtom);
-    const [connectionUserNames, setConnectionUserNames] = useAtom(connectionUserNamesAtom);
+    const [_connectionUserNames, setConnectionUserNames] = useAtom(connectionUserNamesAtom);
     const [opened, { open, close }] = useDisclosure(false);
-    const [messages, setMessages] = useAtom(messagesAtom);
+    const [_messages, setMessages] = useAtom(messagesAtom);
     const [isAudioOn, setIsAudioOn] = useState<boolean>(true);
     const [isVideoOn, setIsVideoOn] = useState<boolean>(true);
     const [isShareScreen, setIsShareScreen] = useState<boolean>(false);
-    const canvasRef = useRef(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null!);
 
     useEffect(() => {
         const peer = new Peer();
@@ -162,10 +162,13 @@ function App() {
 
     const showVideoOffScreen = (): MediaStream => {
         const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas?.getContext('2d');
         // Define the background color and text color
         const backgroundColor = '#000000'; // Background color (blue)
         const textColor = '#FFFFFF'; // Text color (white)
+        if (!canvas || !ctx) {
+            throw new Error('Canvas or context is not available.');
+          }
         ctx.fillStyle = backgroundColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.font = '40px Arial'; // Font size and family
