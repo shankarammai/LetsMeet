@@ -7,6 +7,10 @@ import { notifications } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { userNameAtom } from './store/store';
+import pic1 from '../public/img/conference_call.png';
+import pic2 from '../public/img/group_call.png';
+import pic3 from '../public/img/realtime_colab.png';
+
 
 
 function Home() {
@@ -88,13 +92,13 @@ function Home() {
               height={'md'}
               ref={emblaRef}>
               <Carousel.Slide>
-                <Image src={'../public/img/conference_call.png'}></Image>
+                <Image src={pic1}></Image>
               </Carousel.Slide>
               <Carousel.Slide>
-                <Image src={'../public/img/group_call.png'}></Image>
+                <Image src={pic2}></Image>
               </Carousel.Slide>
               <Carousel.Slide>
-                <Image src={'../public/img/realtime_colab.png'}></Image>
+                <Image src={pic3}></Image>
               </Carousel.Slide>
             </Carousel>
           </Grid.Col>
