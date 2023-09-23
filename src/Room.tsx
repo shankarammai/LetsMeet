@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Peer, { MediaConnection } from 'peerjs';
 import { Affix, Button, Container, Drawer, Group, Input, Text, rem, Flex, ActionIcon, TextInput, CopyButton, } from '@mantine/core';
 import VideoPlayer from './store/VideoPlayer';
@@ -16,12 +16,13 @@ import { notifications } from '@mantine/notifications';
 
 function App() {
     const navigate = useNavigate();
-    const { state } = useLocation() ?? false;
-    if (!state) {
+    const { state } = useLocation() ?? {};
+    let userName: string;
+    if (state) {
+        userName = state.userName;
+    } else {
         navigate('/');
     }
-    const userName = state.userName;
-
     const [peerId, setPeerId] = useAtom(peerIdAtom);
     const [remotePeerIdValue, setRemotePeerIdValue] = useState('');
     const [myVideoStream, setMyVideoStream] = useState<MediaStream>(new MediaStream());

@@ -1,4 +1,4 @@
-import { AppShell, Header, Group, ActionIcon, Text, useMantineColorScheme, Grid, Container, Button, Title, SimpleGrid, Input, Image, Divider } from '@mantine/core';
+import { AppShell, Header, Group, ActionIcon, Text, useMantineColorScheme, Grid, Container, Button, Title, SimpleGrid, Input, Image, Divider, Flex } from '@mantine/core';
 import { Carousel } from '@mantine/carousel';
 import useEmblaCarousel from 'embla-carousel-react'
 import { FaSun, FaMoon, FaUser, FaEnvelope } from 'react-icons/fa';
@@ -22,7 +22,7 @@ function Home() {
   const createMeeting = () => {
     console.log('Creating Meeting');
     const userFullName = userNameRef.current?.value;
-    const userUniqueID = uniqueIDRef.current?.value
+    const userUniqueString = uniqueIDRef.current?.value
 
     //Name check
     if (userFullName.length < 4) {
@@ -35,7 +35,7 @@ function Home() {
     }
 
     //Name check
-    if (userUniqueID.length < 4) {
+    if (userUniqueString.length < 4) {
       notifications.show({
         title: ' Email or Phone Number',
         message: 'Name is too short',
@@ -44,7 +44,7 @@ function Home() {
       return;
     }
     setUserName(userFullName);
-    navigate('call/', { state: { userName: userFullName, userUniqueID: userUniqueID } });
+    navigate('call/', { state: { userName: userFullName, userUniqueString: userUniqueString } });
   }
 
 
@@ -70,7 +70,7 @@ function Home() {
                 Unlock the Power of Communication: Chat and Broadcast App - Connecting People, Inspiring Communities
               </Text>
             </Container>
-            <SimpleGrid mt={"md"} ml={'sm'} cols={4} spacing={15}>
+            <SimpleGrid mt={"md"} ml={'sm'} cols={3} spacing={15}>
               <Input ref={userNameRef} icon={<FaUser />} placeholder="Name " mt={'md'} />
               <Input ref={uniqueIDRef} icon={<FaEnvelope />} placeholder="Email or Phone" mt={'md'} onKeyDown={(event) => {
                 if (event.key === 'Enter') {

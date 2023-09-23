@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@chatscope/chat-ui-kit-react": "^1.10.1",
     "@emotion/react": "^11.11.1",
     "@mantine/carousel": "^6.0.17",
     "@mantine/core": "^6.0.17",
@@ -19,14 +18,12 @@
     "@mantine/notifications": "^6.0.17",
     "embla-carousel-autoplay": "^8.0.0-rc11",
     "embla-carousel-react": "^7.1.0",
-    "etro": "^0.11.0",
     "jotai": "^2.2.2",
     "peerjs": "^1.4.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.10.1",
     "react-router-dom": "^6.15.0",
-    "uuid-by-string": "^4.0.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.21",
