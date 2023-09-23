@@ -1,17 +1,16 @@
-import { ActionIcon, Alert, Tabs, TextInput } from '@mantine/core';
+import { ActionIcon, Tabs, TextInput } from '@mantine/core';
 import { useAtom } from 'jotai';
 import { FaUser, FaCamera, FaArrowCircleRight } from 'react-icons/fa';
 import { messagesAtom, peerIdAtom } from './store/store';
 import { useRef } from 'react';
 import ChatBox from './ChatBox';
-import Effects from './Effects';
 export default function SideBar({ sendMessage }) {
   const [messages, setMessages] = useAtom(messagesAtom);
   const [peerId, setPeerId] = useAtom(peerIdAtom);
   const messageInputRef = useRef<HTMLInputElement>(null);
   const content = messages
     .map((message, index) => 
-    <ChatBox message={message} isMyMessage={message.userId === peerId} key={index}></ChatBox>
+    <ChatBox message={message} isMyMessage={message.userId === peerId} key={'message'+index}></ChatBox>
     );
   const handleSendMesage = () => {
     sendMessage(messageInputRef.current?.value);
@@ -23,10 +22,7 @@ export default function SideBar({ sendMessage }) {
     <Tabs color="indigo" variant="pills" radius="xs" defaultValue="Chat">
       <Tabs.List grow>
         <Tabs.Tab value="Chat" icon={<FaUser size="0.8rem" />}>Chat</Tabs.Tab>
-        <Tabs.Tab value="filters" icon={<FaCamera size="0.8rem" />}>Filters</Tabs.Tab>
-
       </Tabs.List>
-
       <Tabs.Panel value="Chat" pt="xs">
         {content}
         <TextInput
@@ -47,11 +43,6 @@ export default function SideBar({ sendMessage }) {
           }}
         />
       </Tabs.Panel>
-
-      <Tabs.Panel value="filters" pt="xs">
-       <Effects/>
-      </Tabs.Panel>
-
     </Tabs>
   )
 }

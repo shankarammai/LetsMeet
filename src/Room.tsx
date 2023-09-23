@@ -269,7 +269,7 @@ function App() {
 
                     }
                     placeholder="My Peer Id"
-                    value={peerId}
+                    defaultValue={peerId}
                     rightSectionWidth={40}
                 />
                 <Input value={remotePeerIdValue} onChange={e => setRemotePeerIdValue(e.target.value)} placeholder='Enter Friends PeerID' />
@@ -281,10 +281,9 @@ function App() {
                 justify={{ sm: 'center' }}
                 columnGap={'lg'}
             >
-                <VideoPlayer stream={myVideoStream}></VideoPlayer>
+                <VideoPlayer stream={myVideoStream} key={'myVideo'}></VideoPlayer>
                 {remoteMediaStreams.map((stream, i) => {
-                    return <><VideoPlayer stream={stream} key={i}></VideoPlayer> <p key={i}>{connectionUserNames[0]} </p></>
-
+                    return <><VideoPlayer stream={stream} key={'remoteVideo'+i}></VideoPlayer></>
                 })}
             </Flex>
             {!opened &&

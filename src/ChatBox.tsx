@@ -4,7 +4,7 @@ import { Message } from './Types'
 
 interface Props {
     message: Message,
-    isMyMessage: string,
+    isMyMessage: boolean,
 }
 export default function ChatBox({ message, isMyMessage }: Props) {
     return (
