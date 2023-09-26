@@ -81,7 +81,7 @@ function App() {
           <Notifications />
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/call" element={<Room />} />
+            <Route path="/call/:friendID?" element={<Room />} />
             <Route path='*' element={<NotFound />} />
           </Routes>
         </MantineProvider>

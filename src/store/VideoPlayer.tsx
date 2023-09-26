@@ -1,7 +1,7 @@
 import { AspectRatio } from '@mantine/core';
 import { useEffect, useRef } from 'react';
 
-export default function VideoPlayer({stream}: {stream:MediaStream}) {
+export default function VideoPlayer({stream, muted}: {stream:MediaStream, muted:boolean}) {
     const videoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
@@ -18,7 +18,7 @@ export default function VideoPlayer({stream}: {stream:MediaStream}) {
          mih={{base:169, md:338, lg:405}}
          maw={{base:169, md:338, lg:608}}
          mx="auto">
-            <video ref={videoRef} autoPlay muted={true}/>
+            <video ref={videoRef} autoPlay muted={muted}/>
         </AspectRatio>
         </>
     )

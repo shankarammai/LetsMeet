@@ -4,7 +4,7 @@ import { Affix, Button, Container, Drawer, Group, Input, Text, rem, Flex, Action
 import VideoPlayer from './store/VideoPlayer';
 import { useDisclosure } from '@mantine/hooks';
 import SideBar from './SideBar';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { messagesAtom, remoteDataConnectionAtom, peerIdAtom, connectionUserNamesAtom, mediaConnectionsAtom } from './store/store';
 import { Message } from './Types';
@@ -13,15 +13,19 @@ import { FaMicrophone, FaUserAlt } from 'react-icons/fa';
 import { AiOutlineFundProjectionScreen } from 'react-icons/ai';
 import { BiPhoneCall } from 'react-icons/bi';
 import { notifications } from '@mantine/notifications';
+import { nanoid } from 'nanoid';
 
 function App() {
     const navigate = useNavigate();
     const { state } = useLocation() ?? {};
+    const { friendID } = useParams() ?? {};
     let userName: string;
-    if (state) {
-        userName = state.userName;
-    } else {
-        navigate('/');
+    if (!friendID) {
+        if (state) {
+            userName = state.userName;
+        } else {
+            navigate('/');
+        }
     }
     const [peerId, setPeerId] = useAtom(peerIdAtom);
     const [remotePeerIdValue, setRemotePeerIdValue] = useState('');
@@ -39,7 +43,8 @@ function App() {
     const canvasRef = useRef<HTMLCanvasElement>(null!);
 
     useEffect(() => {
-        const peer = new Peer();
+        const nanoId = nanoid(7);
+        const peer = new Peer(nanoId);
         navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((mediaStream) => {
             setMyVideoStream(mediaStream);
         });
@@ -54,7 +59,6 @@ function App() {
 
         //Setting the data Connection for Messages
         peer.on('connection', (connection) => {
-            console.log('connecton established');
             setRemoteDataConnections((previous) => [connection, ...previous]);
             connection.on('data', (data) => {
                 setMessages((prev) => [...prev, data as Message]);
@@ -99,6 +103,10 @@ function App() {
         });
 
         peerInstance.current = peer;
+
+        if (friendID) {
+            setRemotePeerIdValue(friendID);
+        }
     }, [])
 
     const call = (remotePeerId: string) => {
@@ -168,7 +176,7 @@ function App() {
         const textColor = '#FFFFFF'; // Text color (white)
         if (!canvas || !ctx) {
             throw new Error('Canvas or context is not available.');
-          }
+        }
         ctx.fillStyle = backgroundColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.font = '40px Arial'; // Font size and family
@@ -177,6 +185,7 @@ function App() {
             .split(' ')
             .map(word => word.charAt(0))
             .join('');
+        console.log(userName);
 
         const textX = canvas.width / 2 - ctx.measureText(initials).width / 2;
         const textY = canvas.height / 2 + 40 / 3; // Adjust for baseline
@@ -278,16 +287,24 @@ function App() {
                 />
                 <Input value={remotePeerIdValue} onChange={e => setRemotePeerIdValue(e.target.value)} placeholder='Enter Friends PeerID' />
                 <Button variant="gradient" gradient={{ from: 'teal', to: 'blue', deg: 60 }} onClick={() => call(remotePeerIdValue)}>Call</Button>
+                <CopyButton value={window.location.origin + '/call/' + peerId}>
+                    {({ copied, copy }) => (
+                        <Button color={copied ? 'teal' : 'blue'} onClick={copy}>
+                            {copied ? 'Link copied' : 'Send Link'}
+                        </Button>
+                    )}
+                </CopyButton>
             </Flex>
+
             <Flex
                 direction={{ base: 'column', sm: 'row' }}
                 gap={{ base: 'lg', sm: 'lg' }}
                 justify={{ sm: 'center' }}
                 columnGap={'lg'}
             >
-                <VideoPlayer stream={myVideoStream} key={'myVideo'}></VideoPlayer>
+                <VideoPlayer stream={myVideoStream} key={'myVideo'} muted={true}></VideoPlayer>
                 {remoteMediaStreams.map((stream, i) => {
-                    return <><VideoPlayer stream={stream} key={'remoteVideo'+i}></VideoPlayer></>
+                    return <><VideoPlayer stream={stream} key={'remoteVideo' + i} muted={false}></VideoPlayer></>
                 })}
             </Flex>
             {!opened &&
